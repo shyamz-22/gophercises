@@ -60,6 +60,7 @@ problemLoop:
 
 	fmt.Println(fmt.Sprintf("you answered %d out of %d correctly", correctAnswers, len(problems)))
 }
+
 func parseLines(lines [][]string) []Problem {
 	problems := make([]Problem, len(lines))
 
