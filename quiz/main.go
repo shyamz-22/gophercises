@@ -18,6 +18,14 @@ type Problem struct {
 	ExpectedAnswer string
 }
 
+func (p Problem) ask() {
+	fmt.Println(fmt.Sprintf("What is  %s?", p.Question))
+}
+
+func (p Problem) matchAnswer(actualAnswer string) bool  {
+	return p.ExpectedAnswer == actualAnswer
+}
+
 func main() {
 	kingpin.Parse()
 
@@ -39,7 +47,7 @@ func main() {
 
 problemLoop:
 	for _, p := range problems {
-		fmt.Println(fmt.Sprintf("What is  %s?", p.Question))
+		p.ask()
 		answerCh := make(chan string)
 		go func() {
 			var answer string
@@ -52,7 +60,7 @@ problemLoop:
 			fmt.Println("Your Time is up :/")
 			break problemLoop
 		case actualAnswer := <-answerCh:
-			if p.ExpectedAnswer == actualAnswer {
+			if p.matchAnswer(actualAnswer) {
 				correctAnswers++
 			}
 		}
