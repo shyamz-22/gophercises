@@ -9,7 +9,10 @@ import (
 	"regexp"
 	"github.com/pkg/errors"
 	"fmt"
+	"os"
 )
+
+const authReqMessage = "Authentication required"
 
 var (
 	templates     = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
@@ -85,9 +88,26 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	}
 }
 
+func authenticate(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if username, password, ok := r.BasicAuth(); ok {
+			if validUser(username, password) {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		w.Header().Set("WWW-Authenticate", "Basic realm=\"user\"")
+		http.Error(w, authReqMessage, http.StatusUnauthorized)
+	}
+}
+
+func validUser(username string, password string) bool {
+	return username == os.Getenv("QUOKI_USERNAME") && password == os.Getenv("QUOKI_PASSWORD")
+}
+
 func main() {
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/view/", authenticate(makeHandler(viewHandler)))
+	http.HandleFunc("/edit/", authenticate(makeHandler(editHandler)))
+	http.HandleFunc("/save/", authenticate(makeHandler(saveHandler)))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
