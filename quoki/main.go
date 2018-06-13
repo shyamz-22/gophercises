@@ -15,7 +15,7 @@ import (
 const authReqMessage = "Authentication required"
 
 var (
-	templates     = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
+	templates     = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html", "templates/home.html"))
 	validRestPath = regexp.MustCompile("^/(edit|save|view)/.*")
 	validPath     = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 )
@@ -49,6 +49,16 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	}
 
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+	tmplName := strings.Join([]string{"home", "html"}, ".")
+
+	if err := templates.ExecuteTemplate(w, tmplName, page.ListPageTitles()); err != nil {
+		log.Println(err)
+		handleInternalServerError(w, err)
+		return
+	}
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *page.Page) {
@@ -109,5 +119,6 @@ func main() {
 	http.HandleFunc("/view/", authenticate(makeHandler(viewHandler)))
 	http.HandleFunc("/edit/", authenticate(makeHandler(editHandler)))
 	http.HandleFunc("/save/", authenticate(makeHandler(saveHandler)))
+	http.HandleFunc("/", homePageHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

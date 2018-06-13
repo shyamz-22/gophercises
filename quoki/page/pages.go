@@ -3,6 +3,9 @@ package page
 import (
 	"io/ioutil"
 	"path"
+	"log"
+	"strings"
+	"os"
 )
 
 type Page struct {
@@ -24,9 +27,31 @@ func LoadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
+func ListPageTitles() []string {
+	base, _ := os.Getwd()
+	files, err := ioutil.ReadDir(path.Join(base, "pages"))
+	if err != nil {
+		log.Println(err)
+		return []string{}
+	}
+
+	var pageTitles = make([]string, len(files))
+	for index, file := range files {
+		if nameWithExtension := file.Name(); !strings.HasPrefix(nameWithExtension, ".") {
+			pageTitles[index] = removeFileExtension(file)
+		}
+	}
+
+	return pageTitles
+}
+
+func removeFileExtension(file os.FileInfo) string {
+	fileName := strings.Split(file.Name(), ".")
+	return fileName[0]
+}
+
 func getAbsPath(title string) string {
 	filename := title + ".txt"
 	absolutePath := path.Join("pages", filename)
 	return absolutePath
 }
-
