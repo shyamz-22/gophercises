@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Quoki</title>
-</head>
-<body>
-<h1>Welcome to Quoki</h1>
+{{ template "header" }}
+{{ template "navbar" }}
+<div class="container">
 
-<h3>Quokis</h3>
+    <div class="starter-template">
+        <h1>Your Quokis</h1>
+    {{range .}}
+        <p class="lead"><a href="/view/{{.}}">{{ . }}</a></p>
+    {{end}}
+    </div>
 
-{{range .}}
-    <p><a href="/view/{{.}}">{{ . }}</a></p>
-{{end}}
-</body>
-</html>
+</div>
+
+{{ template "footer" }}

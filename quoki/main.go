@@ -15,7 +15,7 @@ import (
 const authReqMessage = "Authentication required"
 
 var (
-	templates     = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html", "templates/home.html"))
+	templates     = template.Must(template.ParseFiles("templates/header.html", "templates/navbar.html", "templates/footer.html","templates/edit.html", "templates/view.html", "templates/home.html"))
 	validRestPath = regexp.MustCompile("^/(edit|save|view)/.*")
 	validPath     = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 )
@@ -120,5 +120,8 @@ func main() {
 	http.HandleFunc("/edit/", authenticate(makeHandler(editHandler)))
 	http.HandleFunc("/save/", authenticate(makeHandler(saveHandler)))
 	http.HandleFunc("/", homePageHandler)
+
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

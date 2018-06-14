@@ -1,16 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.Title}}</title>
-</head>
-<body>
-<h1>{{.Title}}</h1>
+{{template "header"}}
+{{template "navbar"}}
+<div class="container">
+    <div class="starter-template">
+        <h2>{{.Title}}
+            <small><a href="/edit/{{.Title}}">
+            <span class="glyphicon glyphicon-pencil"
+                  aria-hidden="true"></span>
+            </a>
+            </small>
+        </h2>
+    </div>
 
-<p>[<a href="/">Home</a>]</p>
-<p>[<a href="/edit/{{.Title}}">edit</a>]</p>
-
-<div>{{printf "%s" .Body}}</div>
-
-</body>
-</html>
+    <div>{{printf "%s" .Body}}</div>
+</div>
+{{ template  "footer"}}

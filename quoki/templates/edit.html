@@ -1,16 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.Title}}</title>
-</head>
-<body>
-<h1>Editing {{.Title}}</h1>
+{{ template "header" }}
+{{ template "navbar" }}
+<div class="container">
+    <div class="starter-template">
+        <h1>Editing {{.Title}}</h1>
+    </div>
 
-<form action="/save/{{.Title}}" method="POST">
-    <div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
-    <div><input type="submit" value="Save"></div>
-</form>
+    <form action="/save/{{.Title}}" method="POST">
+        <div class="form-group">
+            <textarea class="form-control" id="body" placeholder="Body" name="body" rows="20" cols="80">
+            {{printf "%s" .Body}}
+            </textarea>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-info btn-lg">Save</button>
+        </div>
+    </form>
+</div>
 
-</body>
-</html>
+{{ template "footer" }}
