@@ -51,7 +51,7 @@ func removeFileExtension(file os.FileInfo) string {
 }
 
 func getAbsPath(title string) string {
-	filename := title + ".txt"
+	filename := title + ".md"
 	absolutePath := path.Join("pages", filename)
 	return absolutePath
 }

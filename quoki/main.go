@@ -10,15 +10,37 @@ import (
 	"github.com/pkg/errors"
 	"fmt"
 	"os"
+	"github.com/microcosm-cc/bluemonday"
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 const authReqMessage = "Authentication required"
 
 var (
-	templates     = template.Must(template.ParseFiles("templates/header.html", "templates/navbar.html", "templates/footer.html","templates/edit.html", "templates/view.html", "templates/home.html"))
+	templates = template.Must(
+		template.ParseFiles(
+			"templates/header.html",
+			"templates/navbar.html",
+			"templates/footer.html",
+			"templates/edit.html",
+			"templates/home.html"))
+	viewTemplate  = template.Must(template.New("templates/view.html").Funcs(template.FuncMap{"markDown": markDowner}).ParseFiles(
+		"templates/header.html",
+		"templates/navbar.html",
+		"templates/footer.html",
+		"templates/view.html"))
 	validRestPath = regexp.MustCompile("^/(edit|save|view)/.*")
 	validPath     = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 )
+
+func markDowner(body []byte) template.HTML {
+
+	unsafeHtml := blackfriday.Run(body)
+	html := bluemonday.UGCPolicy().SanitizeBytes(unsafeHtml)
+
+	return template.HTML(html)
+
+}
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := page.LoadPage(title)
@@ -26,7 +48,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Redirect(w, r, "/edit/"+title, http.StatusNotFound)
 		return
 	}
-	renderTemplate(w, "view", p)
+
+	if err := viewTemplate.ExecuteTemplate(w, "view.html", p); err != nil {
+		handleInternalServerError(w, err)
+	}
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -116,12 +141,14 @@ func validUser(username string, password string) bool {
 }
 
 func main() {
-	http.HandleFunc("/view/", authenticate(makeHandler(viewHandler)))
-	http.HandleFunc("/edit/", authenticate(makeHandler(editHandler)))
-	http.HandleFunc("/save/", authenticate(makeHandler(saveHandler)))
-	http.HandleFunc("/", homePageHandler)
+	mux := http.NewServeMux()
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.HandleFunc("/view/", authenticate(makeHandler(viewHandler)))
+	mux.HandleFunc("/edit/", authenticate(makeHandler(editHandler)))
+	mux.HandleFunc("/save/", authenticate(makeHandler(saveHandler)))
+	mux.HandleFunc("/", homePageHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

@@ -1,6 +1,6 @@
 {{ template "header" }}
 {{ template "navbar" }}
-<div class="container">
+<main role="main" class="container">
     <div class="starter-template">
         <h1>Editing {{.Title}}</h1>
     </div>
@@ -11,10 +11,10 @@
             {{printf "%s" .Body}}
             </textarea>
         </div>
-        <div class="text-center">
+        <div class="text-center mb-2">
             <button type="submit" class="btn btn-info btn-lg">Save</button>
         </div>
     </form>
-</div>
+</main>
 
 {{ template "footer" }}
