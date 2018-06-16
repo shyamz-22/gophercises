@@ -2,16 +2,18 @@
 {{ template "navbar" }}
 <main role="main" class="container">
     <div class="starter-template">
-        <h1>Editing {{.Title}}</h1>
+        <h1>Editing {{.DisplayTitle}}</h1>
     </div>
 
-    <form action="/save/{{.Title}}" method="POST">
+    <form action="/save/{{.Id}}" method="POST">
         <div class="form-group">
+            <input type="text" class="form-control" id="displayTitle" name="displayTitle" aria-describedby="emailHelp" placeholder="Enter your article's title" value="{{.DisplayTitle}}">
+            <small id="titleHelp" class="form-text text-muted">This is the display title for your article</small>
             <textarea class="form-control" id="body" placeholder="Body" name="body" rows="20" cols="80">
             {{printf "%s" .Body}}
             </textarea>
         </div>
-        <div class="text-center mb-2">
+        <div class="text-center mb-4">
             <button type="submit" class="btn btn-info btn-lg">Save</button>
         </div>
     </form>

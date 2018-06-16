@@ -4,54 +4,138 @@ import (
 	"io/ioutil"
 	"path"
 	"log"
-	"strings"
 	"os"
+	"encoding/csv"
+	"errors"
 )
 
+type Pages []*Page
+
 type Page struct {
-	Title string
-	Body  []byte
+	Id           string
+	DisplayTitle string
+	PagePath     string
+	Body         []byte
 }
 
-func (p *Page) Save() error {
-	absolutePath := getAbsPath(p.Title)
-	return ioutil.WriteFile(absolutePath, p.Body, 0600)
-}
-
-func LoadPage(title string) (*Page, error) {
-	filename := getAbsPath(title)
-	body, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return &Page{Title: title, Body: body}, nil
-}
-
-func ListPageTitles() []string {
+func readAll() Pages {
 	base, _ := os.Getwd()
-	files, err := ioutil.ReadDir(path.Join(base, "pages"))
+
+	metaFileLocation := path.Join(base, "meta", "meta.csv")
+	f, err := os.Open(metaFileLocation)
 	if err != nil {
-		log.Println(err)
-		return []string{}
+		log.Printf("Unable to open file %s. Err %v", metaFileLocation, err)
+		return nil
+	}
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+	lines, err := reader.ReadAll()
+	if err != nil {
+		log.Printf("Invalid csv file %s. Err %v", metaFileLocation, err)
+		return nil
 	}
 
-	var pageTitles = make([]string, len(files))
-	for index, file := range files {
-		if nameWithExtension := file.Name(); !strings.HasPrefix(nameWithExtension, ".") {
-			pageTitles[index] = removeFileExtension(file)
+	titleToPageMappings := make([]*Page, len(lines))
+
+	for i, tm := range lines {
+		titleToPageMappings[i] = &Page{
+			Id:           tm[0],
+			PagePath:     tm[1],
+			DisplayTitle: tm[2],
 		}
 	}
 
-	return pageTitles
+	return titleToPageMappings
 }
 
-func removeFileExtension(file os.FileInfo) string {
-	fileName := strings.Split(file.Name(), ".")
-	return fileName[0]
+func write(args ...string) error {
+	var err error
+	var f *os.File
+
+	base, _ := os.Getwd()
+	metaFileLocation := path.Join(base, "meta", "meta.csv")
+
+	if f, err = os.Open(metaFileLocation); err != nil {
+		log.Printf("Unable to open file %s. Err %v", metaFileLocation, err)
+		if f, err = os.Create(metaFileLocation); err != nil {
+			return err
+		}
+
+	}
+	defer f.Close()
+
+	writer := csv.NewWriter(f)
+	defer writer.Flush()
+
+	err = writer.Write(args)
+	if err != nil {
+		log.Printf("Unable to open file %s. Err %v", metaFileLocation, err)
+		return err
+	}
+
+	return nil
 }
 
-func getAbsPath(title string) string {
-	filename := title + ".md"
-	absolutePath := path.Join("pages", filename)
+func (mappings Pages) getPageById(id string) *Page {
+	for _, mapping := range mappings {
+
+		if id == mapping.Id {
+			return mapping
+		}
+	}
+
+	return nil
+}
+
+func (p *Page) Save() error {
+
+	var err error
+
+	if err = ioutil.WriteFile(p.PagePath, p.Body, 0600); err != nil {
+		return err
+	}
+
+	if err = write(p.Id, p.PagePath, p.DisplayTitle); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadPage(id string) (*Page, error) {
+
+	var (
+		err   error
+		tm    *Page
+		body  []byte
+		pages Pages
+	)
+
+	if pages = readAll(); pages == nil {
+		return nil, errors.New("page not found: " + id)
+	}
+
+	if tm = pages.getPageById(id); tm == nil {
+		return nil, errors.New("page not found: " + id)
+	}
+
+	if body, err = ioutil.ReadFile(tm.PagePath); err != nil {
+		return nil, err
+	}
+
+	tm.Body = body
+
+	return tm, nil
+}
+
+func ListPageTitles() Pages {
+	return readAll()
+}
+
+func GetAbsPath(id string) string {
+	base, _ := os.Getwd()
+	filename := id + ".md"
+	absolutePath := path.Join(base, "pages", filename)
 	return absolutePath
 }

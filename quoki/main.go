@@ -12,6 +12,7 @@ import (
 	"os"
 	"github.com/microcosm-cc/bluemonday"
 	"gopkg.in/russross/blackfriday.v2"
+	"github.com/shyamz-22/gophercises/quoki/rand"
 )
 
 const authReqMessage = "Authentication required"
@@ -24,7 +25,7 @@ var (
 			"templates/footer.html",
 			"templates/edit.html",
 			"templates/home.html"))
-	viewTemplate  = template.Must(template.New("templates/view.html").Funcs(template.FuncMap{"markDown": markDowner}).ParseFiles(
+	viewTemplate = template.Must(template.New("templates/view.html").Funcs(template.FuncMap{"markDown": markDowner}).ParseFiles(
 		"templates/header.html",
 		"templates/navbar.html",
 		"templates/footer.html",
@@ -42,10 +43,10 @@ func markDowner(body []byte) template.HTML {
 
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := page.LoadPage(title)
+func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
+	p, err := page.LoadPage(id)
 	if err != nil {
-		http.Redirect(w, r, "/edit/"+title, http.StatusNotFound)
+		http.Redirect(w, r, "/edit/"+rand.RandomString(32), http.StatusNotFound)
 		return
 	}
 
@@ -54,26 +55,27 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	}
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := page.LoadPage(title)
+func editHandler(w http.ResponseWriter, r *http.Request, id string) {
+	p, err := page.LoadPage(id)
 	if err != nil {
-		p = &page.Page{Title: title}
+		p = &page.Page{Id: id}
 	}
 
 	renderTemplate(w, "edit", p)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+func saveHandler(w http.ResponseWriter, r *http.Request, id string) {
 	body := r.FormValue("body")
+	displayTitle := r.FormValue("displayTitle")
 
-	p := &page.Page{Title: title, Body: []byte(body)}
+	p := &page.Page{Id: id, DisplayTitle: displayTitle, PagePath: page.GetAbsPath(id), Body: []byte(body)}
 
 	if err := p.Save(); err != nil {
 		handleInternalServerError(w, err)
 		return
 	}
 
-	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+	http.Redirect(w, r, "/view/"+id, http.StatusFound)
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {

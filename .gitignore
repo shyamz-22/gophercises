@@ -12,8 +12,10 @@
 *.out
 
 **/pages/*
+**/meta/*
 
 !**/pages/.gitkeep
+!**/meta/.gitkeep
 
 #idea
 .idea/
