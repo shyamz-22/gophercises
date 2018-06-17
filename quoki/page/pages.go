@@ -49,19 +49,15 @@ func readAll() Pages {
 	return titleToPageMappings
 }
 
-func write(args ...string) error {
+func writeToMetaCsv(args ...string) error {
 	var err error
 	var f *os.File
 
 	base, _ := os.Getwd()
 	metaFileLocation := path.Join(base, "meta", "meta.csv")
 
-	if f, err = os.Open(metaFileLocation); err != nil {
-		log.Printf("Unable to open file %s. Err %v", metaFileLocation, err)
-		if f, err = os.Create(metaFileLocation); err != nil {
-			return err
-		}
-
+	if f, err = os.OpenFile(metaFileLocation, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644); err != nil {
+		log.Printf("Unable to open/create file %s. Err %v", metaFileLocation, err)
 	}
 	defer f.Close()
 
@@ -96,7 +92,12 @@ func (p *Page) Save() error {
 		return err
 	}
 
-	if err = write(p.Id, p.PagePath, p.DisplayTitle); err != nil {
+	return nil
+}
+
+func (p *Page) WriteMetaData() error {
+
+	if err := writeToMetaCsv(p.Id, p.PagePath, p.DisplayTitle); err != nil {
 		return err
 	}
 

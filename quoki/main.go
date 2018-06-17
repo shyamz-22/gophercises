@@ -70,6 +70,11 @@ func saveHandler(w http.ResponseWriter, r *http.Request, id string) {
 
 	p := &page.Page{Id: id, DisplayTitle: displayTitle, PagePath: page.GetAbsPath(id), Body: []byte(body)}
 
+	if metaWriteError := p.WriteMetaData(); metaWriteError != nil {
+		handleInternalServerError(w, metaWriteError)
+		return
+	}
+
 	if err := p.Save(); err != nil {
 		handleInternalServerError(w, err)
 		return
