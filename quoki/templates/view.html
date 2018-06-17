@@ -4,21 +4,21 @@
 
     <div class="row">
         <div class="col col-md">
-            <h1>{{.DisplayTitle}}</h1>
+            <h1>{{.Page.DisplayTitle}}</h1>
         </div>
         <div class="col col-md">
-            <a href="#" class="btn btn-danger btn-lg rounded-circle float-right mr-2">
+            <a href="/edit/{{.NewId}}" class="btn btn-danger btn-lg rounded-circle float-right mr-2">
                 <i class="fa fa-plus"></i>
             </a>
 
-            <a href="/edit/{{.Id}}" class="btn btn-info btn-lg rounded-circle float-right mr-2">
+            <a href="/edit/{{.Page.Id}}" class="btn btn-info btn-lg rounded-circle float-right mr-2">
                 <i class="fa fa-edit"></i>
             </a>
         </div>
     </div>
     <div class="row">
         <div class="col col-md">
-        {{markDown .Body }}
+        {{markDown .Page.Body }}
         </div>
 
     </div>

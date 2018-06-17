@@ -7,14 +7,14 @@
             <h1>Your Quokis</h1>
         </div>
         <div class="col col-md">
-            <button class="btn btn-danger btn-lg rounded-circle float-right">
+            <a href="/edit/{{ .NewId }}" class="btn btn-danger btn-lg rounded-circle float-right">
                 <i class="fa fa-plus"></i>
-            </button>
+            </a>
         </div>
     </div>
     <div class="row">
         <div class="col col-md starter-template">
-        {{range .}}
+        {{range .ListOfTitles}}
             <p class="lead"><a href="/view/{{.Id}}">{{ .DisplayTitle}}</a></p>
         {{end}}
         </div>

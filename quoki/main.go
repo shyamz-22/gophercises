@@ -50,7 +50,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	if err := viewTemplate.ExecuteTemplate(w, "view.html", p); err != nil {
+	d := struct {
+		NewId string
+		Page  *page.Page
+	}{
+		NewId: rand.RandomString(32),
+		Page:  p,
+	}
+	if err := viewTemplate.ExecuteTemplate(w, "view.html", d); err != nil {
 		handleInternalServerError(w, err)
 	}
 }
@@ -86,7 +93,15 @@ func saveHandler(w http.ResponseWriter, r *http.Request, id string) {
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
 	tmplName := strings.Join([]string{"home", "html"}, ".")
 
-	if err := templates.ExecuteTemplate(w, tmplName, page.ListPageTitles()); err != nil {
+	le := struct {
+		NewId        string
+		ListOfTitles page.Pages
+	}{
+		NewId:        rand.RandomString(32),
+		ListOfTitles: page.ListPageTitles(),
+	}
+
+	if err := templates.ExecuteTemplate(w, tmplName, le); err != nil {
 		log.Println(err)
 		handleInternalServerError(w, err)
 		return
